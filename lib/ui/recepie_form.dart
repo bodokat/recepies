@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:get_it/get_it.dart';
-import 'package:mobx/mobx.dart';
-import 'package:optional/optional_internal.dart';
 
 import 'package:recepies/entities/recepie.dart';
-import 'package:recepies/model/ingredient_store.dart';
+import 'package:recepies/ui/ingredient_dropdown.dart';
 
 class RecepieForm extends StatefulWidget {
   RecepieForm({Key key}) : super(key: key);
@@ -41,14 +38,7 @@ class _RecepieFormState extends State<RecepieForm> {
                 decoration: InputDecoration(labelText: "Body"),
                 validators: [FormBuilderValidators.required()],
               ),
-              FormBuilderCustomField(
-                attribute: "ingredients",
-                formField: FormField(
-                  builder: _buildIngredientForm,
-                ),
-                initialValue: Map<Ingredient, int>(),
-                validators: [FormBuilderValidators.required()],
-              )
+              _IngredientForm()
             ],
           ),
         ),
@@ -71,44 +61,52 @@ class _RecepieFormState extends State<RecepieForm> {
   }
 }
 
-Widget _buildIngredientForm(FormFieldState<Map<Ingredient, int>> field) {
-  return ListView(
-    children: <Widget>[
-      ...field.value.entries.map((e) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
-              Expanded(
-                  child: Text(
-                e.key.name,
-                overflow: TextOverflow.ellipsis,
-              )),
-              Container(
-                child: TextField(
-                  controller: TextEditingController.fromValue(TextEditingValue(text: e.value.toString())),
-                  onChanged: (s) {
-                    field.value[e.key] = int.parse(s);
-                  },
-                ),
-                width: 64,
-              ),
-              IconButton(
-                icon: Icon(Icons.remove_circle_outline),
-                onPressed: () {
-                  field.value.remove(e.key);
+class _IngredientForm extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => FormBuilderCustomField(
+        attribute: "ingredients",
+        formField: FormField(
+          builder: (FormFieldState<Map<Ingredient, int>> field) => ListView(
+            children: <Widget>[
+              ...field.value.entries.map((e) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
+                      Expanded(
+                          child: Text(
+                        e.key.name,
+                        overflow: TextOverflow.ellipsis,
+                      )),
+                      Container(
+                        child: TextField(
+                          controller: TextEditingController.fromValue(TextEditingValue(text: e.value.toString())),
+                          onChanged: (s) {
+                            field.value[e.key] = int.parse(s);
+                          },
+                        ),
+                        width: 64,
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.remove_circle_outline),
+                        onPressed: () {
+                          field.value.remove(e.key);
+                          field.didChange(field.value);
+                        },
+                      )
+                    ]),
+                  )),
+              IngredientRow(
+                onSubmit: (ing, amount) {
+                  field.value[ing] = amount;
                   field.didChange(field.value);
                 },
               )
-            ]),
-          )),
-      IngredientRow(
-        onSubmit: (ing, amount) {
-          field.value[ing] = amount;
-          field.didChange(field.value);
-        },
-      )
-    ],
-    shrinkWrap: true,
-  );
+            ],
+            shrinkWrap: true,
+          ),
+        ),
+        initialValue: const <Ingredient, int>{},
+        validators: [FormBuilderValidators.required()],
+      );
 }
 
 class IngredientRow extends StatefulWidget {
@@ -163,102 +161,3 @@ class _IngredientRowState extends State<IngredientRow> {
     );
   }
 }
-
-class IngredientDropdown extends StatefulWidget {
-  IngredientDropdown({
-    Key key,
-  }) : super(key: key);
-
-  @override
-  _IngredientDropdownState createState() => _IngredientDropdownState();
-}
-
-class _IngredientDropdownState extends State<IngredientDropdown> {
-  final Observable<Ingredient> _current = Observable(null);
-
-  var store = GetIt.I<IngredientStore>();
-
-  @override
-  Widget build(BuildContext context) {
-    return FormBuilderCustomField(
-        attribute: "ingredient",
-        validators: [FormBuilderValidators.required()],
-        formField: FormField(builder: (field) {
-          return Observer(builder: (context) {
-            final stream = store.allIngredients;
-
-            // Loading or error
-
-            if (stream.hasError) {
-              Navigator.pop(context, null);
-              Scaffold.of(context).showSnackBar(SnackBar(content: Text("could not get ingredients: ${stream.error}")));
-            }
-            if (stream.value == null)
-              return DropdownButton(
-                hint: Text("Loading..."),
-                items: null,
-                onChanged: null,
-              );
-
-            final allIngredients = stream.value;
-            return DropdownButton<Optional<Ingredient>>(
-                isExpanded: true,
-                value: allIngredients.contains(_current.value) ? _current.value.toOptional : null,
-                hint: Text("add an ingredient"),
-                items: [
-                  for (var ingredient in allIngredients)
-                    DropdownMenuItem(
-                      child: Text(ingredient.name),
-                      value: Optional.of(ingredient),
-                    ),
-                  DropdownMenuItem(value: Optional<Ingredient>.empty(), child: Text("new..."))
-                ],
-                onChanged: (Optional<Ingredient> val) async {
-                  Ingredient ing;
-                  if (val.isEmpty) {
-                    Ingredient newIngredient = await showAddIngredientDialog(context);
-                    if (newIngredient == null) {
-                      return;
-                    } else {
-                      ing = await store.addIngredient(newIngredient);
-                    }
-                  } else {
-                    ing = val.value;
-                  }
-                  runInAction(() => _current.value = ing);
-                  field.didChange(ing);
-                });
-          });
-        }));
-  }
-}
-
-Future<Ingredient> showAddIngredientDialog(BuildContext context) => showDialog<Ingredient>(
-    context: context,
-    builder: (context) {
-      String ingredientName;
-      return AlertDialog(
-        title: Text("Create new ingredient"),
-        content: Row(
-          children: <Widget>[
-            Expanded(
-              child: TextField(
-                autofocus: true,
-                decoration: InputDecoration(labelText: "Ingredient Name"),
-                onChanged: (val) => ingredientName = val,
-              ),
-            )
-          ],
-        ),
-        actions: <Widget>[
-          FlatButton(
-            child: const Text("Cancel"),
-            onPressed: () => Navigator.pop(context, null),
-          ),
-          FlatButton(
-            child: const Text("Ok"),
-            onPressed: () => Navigator.pop(context, Ingredient(id: null, name: ingredientName)),
-          )
-        ],
-      );
-    });

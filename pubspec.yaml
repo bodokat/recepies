@@ -12,6 +12,8 @@ dependencies:
 
   mobx: "^1.0.0"
   flutter_mobx:
+
+  flutter_hooks:
   
   moor_flutter:
   
