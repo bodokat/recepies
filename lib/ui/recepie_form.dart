@@ -68,34 +68,19 @@ class _IngredientForm extends StatelessWidget {
         formField: FormField(
           builder: (FormFieldState<Map<Ingredient, int>> field) => ListView(
             children: <Widget>[
-              ...field.value.entries.map((e) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
-                      Expanded(
-                          child: Text(
-                        e.key.name,
-                        overflow: TextOverflow.ellipsis,
-                      )),
-                      Container(
-                        child: TextField(
-                          controller: TextEditingController.fromValue(TextEditingValue(text: e.value.toString())),
-                          onChanged: (s) {
-                            field.value[e.key] = int.parse(s);
-                          },
-                        ),
-                        width: 64,
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.remove_circle_outline),
-                        onPressed: () {
-                          field.value.remove(e.key);
-                          field.didChange(field.value);
-                        },
-                      )
-                    ]),
+              ...field.value.entries.map((e) => IngredientRow(
+                    onChange: (ing, amount) {
+                      field.value.remove(e.key);
+                      field.value[ing] = amount;
+                      field.didChange(field.value);
+                    },
+                    delete: () {
+                      field.value.remove(e.key);
+                      field.didChange(field.value);
+                    },
                   )),
               IngredientRow(
-                onSubmit: (ing, amount) {
+                onChange: (ing, amount) {
                   field.value[ing] = amount;
                   field.didChange(field.value);
                 },
@@ -104,7 +89,7 @@ class _IngredientForm extends StatelessWidget {
             shrinkWrap: true,
           ),
         ),
-        initialValue: const <Ingredient, int>{},
+        initialValue: Map<Ingredient, int>(),
         validators: [FormBuilderValidators.required()],
       );
 }
@@ -112,10 +97,12 @@ class _IngredientForm extends StatelessWidget {
 class IngredientRow extends StatefulWidget {
   const IngredientRow({
     Key key,
-    @required this.onSubmit,
+    @required this.onChange,
+    this.delete,
   }) : super(key: key);
 
-  final void Function(Ingredient, int) onSubmit;
+  final void Function(Ingredient, int) onChange;
+  final VoidCallback delete;
 
   @override
   _IngredientRowState createState() => _IngredientRowState();
@@ -127,6 +114,10 @@ class _IngredientRowState extends State<IngredientRow> {
   @override
   Widget build(BuildContext context) {
     return FormBuilder(
+      onChanged: (val) {
+        print("Changed");
+        widget.onChange(val["ingredient"], int.parse(val["amount"]));
+      },
       key: _formKey,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -146,16 +137,7 @@ class _IngredientRowState extends State<IngredientRow> {
             ),
             width: 64,
           ),
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () {
-              if (_formKey.currentState.saveAndValidate()) {
-                Ingredient ing = _formKey.currentState.value["ingredient"];
-                int amount = int.parse(_formKey.currentState.value["amount"]);
-                widget.onSubmit(ing, amount);
-              }
-            },
-          )
+          IconButton(icon: Icon(Icons.remove), onPressed: widget.delete ?? _formKey.currentState.reset)
         ]),
       ),
     );
