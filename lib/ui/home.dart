@@ -34,18 +34,17 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _pages = [
-      Observer(builder: (_) {
-        final stream = _store.homepageEntries;
-        if (stream.value != null) {
-          return RecepieList(stream.value);
-        } else {
-          return !stream.hasError
-              ? Center(
-                  child: CircularProgressIndicator(),
-                )
-              : Text("Error: ${stream.error}");
-        }
-      }),
+      StreamBuilder(
+          stream: _store.homepageEntries,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Text("Error: ${snapshot.error}");
+            }
+            if (!snapshot.hasData) {
+              return CircularProgressIndicator();
+            }
+            return RecepieList(snapshot.data);
+          }),
       Observer(builder: (_) {
         final shoppingListFuture = _store.totalIngredients;
         return FutureBuilder(

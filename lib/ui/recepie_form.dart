@@ -115,8 +115,7 @@ class _IngredientRowState extends State<IngredientRow> {
   Widget build(BuildContext context) {
     return FormBuilder(
       onChanged: (val) {
-        print("Changed");
-        widget.onChange(val["ingredient"], int.parse(val["amount"]));
+        widget.onChange(val["ingredient"] as Ingredient, int.parse(val["amount"]));
       },
       key: _formKey,
       child: Padding(
