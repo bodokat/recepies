@@ -1,31 +1,22 @@
-import 'package:equatable/equatable.dart';
-import 'package:moor_flutter/moor_flutter.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class Recepie extends Equatable {
-  final int id;
-  final String title;
-  final String body;
-  final Map<Ingredient, int> ingredients;
+part 'recepie.freezed.dart';
 
-  const Recepie({@required this.id, @required this.title, @required this.body, @required this.ingredients});
-
-  List<Object> get props => [id, title, body, ingredients];
+@freezed
+abstract class Recepie with _$Recepie {
+  const factory Recepie(
+      {@required int id,
+      @required String title,
+      @required String body,
+      @required Map<Ingredient, int> ingredients}) = _Recepie;
 }
 
-class Ingredient extends Equatable {
-  final int id;
-  final String name;
-
-  const Ingredient({@required this.id, @required this.name});
-
-  List<Object> get props => [id, name];
+@freezed
+abstract class Ingredient with _$Ingredient {
+  const factory Ingredient({@required int id, @required String name}) = _Ingredient;
 }
 
-class SmallRecepie extends Equatable {
-  final int id;
-  final String title;
-
-  const SmallRecepie({@required this.id, @required this.title});
-
-  List<Object> get props => [id, title];
+@freezed
+abstract class SmallRecepie with _$SmallRecepie {
+  const factory SmallRecepie({@required int id, @required String title}) = _SmallRecepie;
 }
