@@ -1,24 +1,25 @@
-import 'package:mobx/mobx.dart';
+import 'dart:async';
+
 import 'package:recepies/data/database.dart' show MyDatabase;
 import 'package:recepies/entities/recepie.dart';
+import 'package:rxdart/rxdart.dart';
 
-part 'recepie_store.g.dart';
-
-class RecepieStore = _RecepieStore with _$RecepieStore;
-
-abstract class _RecepieStore with Store {
+class RecepieStore {
   final MyDatabase _db;
 
-  _RecepieStore(this._db) {
-    homepageEntries = ObservableStream(_db.smallRecepiesDao.watchAll());
+  RecepieStore(this._db) {
+    homepageEntries = _db.smallRecepiesDao.watchAll().shareValue();
+    totalIngredients = selections.asyncMap((event) => getTotalIngredients(event));
   }
 
-  ObservableStream<List<SmallRecepie>> homepageEntries;
+  void select(SmallRecepie recepie) => selections.add(selections.value..add(recepie));
+  void unselect(SmallRecepie recepie) => selections.add(selections.value..remove(recepie));
 
-  ObservableSet<SmallRecepie> selected = ObservableSet();
+  Stream<List<SmallRecepie>> homepageEntries;
+  BehaviorSubject<Set<SmallRecepie>> selections = BehaviorSubject();
+  Stream<Map<Ingredient, int>> totalIngredients;
 
-  @computed
-  Future<Map<Ingredient, int>> get totalIngredients async {
+  Future<Map<Ingredient, int>> getTotalIngredients(Set<SmallRecepie> selected) async {
     final ingredientList = await Future.wait(selected.map((recepie) => _db.recepiesDao.getIngredients(recepie.id)));
     return ingredientList.fold<Map<Ingredient, int>>(
         Map(), (previousMap, nextMap) => previousMap..addAllWith(nextMap, (x, y) => x + y));
@@ -29,6 +30,10 @@ abstract class _RecepieStore with Store {
   Future<int> deleteRecepie(Recepie recepie) => _db.recepiesDao.deleteRecepie(recepie);
 
   Future<Recepie> getFullRecepie(SmallRecepie recepie) => _db.recepiesDao.getById(recepie.id);
+
+  void dispose() {
+    selections.close();
+  }
 }
 
 extension<K, V> on Map<K, V> {

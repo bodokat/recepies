@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:get_it/get_it.dart';
 
 import 'package:recepies/entities/recepie.dart';
@@ -34,32 +34,27 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _pages = [
-      StreamBuilder(
-          stream: _store.homepageEntries,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Text("Error: ${snapshot.error}");
-            }
-            if (!snapshot.hasData) {
-              return CircularProgressIndicator();
-            }
-            return RecepieList(snapshot.data);
-          }),
-      Observer(builder: (_) {
-        final shoppingListFuture = _store.totalIngredients;
-        return FutureBuilder(
-            future: shoppingListFuture,
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return Text("Error: ${snapshot.error}");
-              }
-              if (!snapshot.hasData) {
-                return Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-              return ShoppingList(snapshot.data);
-            });
+      HookBuilder(builder: (context) {
+        final snapshot = useStream(_store.homepageEntries);
+        if (snapshot.hasError) {
+          return Text("Error: ${snapshot.error}");
+        }
+        if (!snapshot.hasData) {
+          return CircularProgressIndicator();
+        }
+        return RecepieList(snapshot.data);
+      }),
+      HookBuilder(builder: (context) {
+        final snapshot = useStream(_store.totalIngredients);
+        if (snapshot.hasError) {
+          return Text("Error: ${snapshot.error}");
+        }
+        if (!snapshot.hasData) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+        return ShoppingList(snapshot.data);
       }),
     ];
     _tabController = TabController(vsync: this, length: 2);

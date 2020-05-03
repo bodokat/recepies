@@ -21,7 +21,7 @@ dependencies:
   
   flutter_form_builder: ^3.8.3
 
-  rxdart: ^0.24.0  
+  rxdart: ^0.24.0
   
   optional:
   equatable:
