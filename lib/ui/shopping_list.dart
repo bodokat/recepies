@@ -11,7 +11,7 @@ class ShoppingList extends StatelessWidget {
     return Container(
         child: ListView.builder(
       itemBuilder: (_, i) => ListTile(
-        title: Text("${entries[i].value} ${entries[i].key.name}"),
+        title: Text('${entries[i].value} ${entries[i].key.name}'),
       ),
       itemCount: entries.length,
     ));

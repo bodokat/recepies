@@ -17,9 +17,9 @@ class RecepieDetails extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.delete),
             onPressed: () async {
-              var shouldDelete = await showConfirmDialog(context, "Delete This Recepie?");
+              var shouldDelete = await showConfirmDialog(context, 'Delete This Recepie?');
               if (shouldDelete) {
-                _store.deleteRecepie(recepie);
+                await _store.deleteRecepie(recepie);
                 Navigator.pop(context);
               }
             },
@@ -29,7 +29,7 @@ class RecepieDetails extends StatelessWidget {
       body: Column(
         children: <Widget>[
           Text(
-            "Ingredients",
+            'Ingredients',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           ...recepie.ingredients.entries
@@ -60,11 +60,11 @@ Future<bool> showConfirmDialog(BuildContext context, String title) => showDialog
           title: Text(title),
           actions: <Widget>[
             FlatButton(
-              child: Text("Cancel"),
+              child: Text('Cancel'),
               onPressed: () => Navigator.pop(context, false),
             ),
             FlatButton(
-              child: Text("OK"),
+              child: Text('OK'),
               onPressed: () => Navigator.pop(context, true),
             ),
           ],

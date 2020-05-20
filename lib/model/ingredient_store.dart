@@ -1,14 +1,15 @@
 import 'package:mobx/mobx.dart';
 import 'package:recepies/data/database.dart' show MyDatabase;
 import 'package:recepies/entities/recepie.dart';
+
 part 'ingredient_store.g.dart';
 
-class IngredientStore = _IngredientStoreBase with _$IngredientStore;
+class IngredientStore = _IngredientStore with _$IngredientStore;
 
-abstract class _IngredientStoreBase with Store {
+abstract class _IngredientStore with Store {
   final MyDatabase _db;
 
-  _IngredientStoreBase(this._db) {
+  _IngredientStore(this._db) {
     allIngredients = ObservableStream(_db.ingredientsDao.watchAll());
   }
 

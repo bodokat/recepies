@@ -13,13 +13,13 @@ class RecepieForm extends StatefulWidget {
 }
 
 class _RecepieFormState extends State<RecepieForm> {
-  var _formKey = GlobalKey<FormBuilderState>();
+  final _formKey = GlobalKey<FormBuilderState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("New Recepie"),
+        title: Text('New Recepie'),
       ),
       body: FormBuilder(
         key: _formKey,
@@ -29,13 +29,13 @@ class _RecepieFormState extends State<RecepieForm> {
             mainAxisSize: MainAxisSize.max,
             children: <Widget>[
               FormBuilderTextField(
-                attribute: "title",
-                decoration: InputDecoration(labelText: "Title"),
+                attribute: 'title',
+                decoration: InputDecoration(labelText: 'Title'),
                 validators: [FormBuilderValidators.required()],
               ),
               FormBuilderTextField(
-                attribute: "body",
-                decoration: InputDecoration(labelText: "Body"),
+                attribute: 'body',
+                decoration: InputDecoration(labelText: 'Body'),
                 validators: [FormBuilderValidators.required()],
               ),
               _IngredientForm()
@@ -45,12 +45,12 @@ class _RecepieFormState extends State<RecepieForm> {
       ),
       persistentFooterButtons: <Widget>[
         RaisedButton(
-          child: Text("OK"),
+          child: Text('OK'),
           onPressed: () {
             if (_formKey.currentState.saveAndValidate()) {
-              String title = _formKey.currentState.value["title"];
-              String body = _formKey.currentState.value["body"];
-              Map<Ingredient, int> ingredients = _formKey.currentState.value["ingredients"];
+              var title = _formKey.currentState.value['title'] as String;
+              var body = _formKey.currentState.value['body'] as String;
+              var ingredients = _formKey.currentState.value['ingredients'] as Map<Ingredient, int>;
               assert([title, body, ingredients].every((element) => element != null));
               Navigator.pop(context, Recepie(id: null, title: title, body: body, ingredients: ingredients));
             }
@@ -64,7 +64,7 @@ class _RecepieFormState extends State<RecepieForm> {
 class _IngredientForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) => FormBuilderCustomField(
-        attribute: "ingredients",
+        attribute: 'ingredients',
         formField: FormField(
           builder: (FormFieldState<Map<Ingredient, int>> field) => ListView(
             children: <Widget>[
@@ -89,7 +89,7 @@ class _IngredientForm extends StatelessWidget {
             shrinkWrap: true,
           ),
         ),
-        initialValue: Map<Ingredient, int>(),
+        initialValue: <Ingredient, int>{},
         validators: [FormBuilderValidators.required()],
       );
 }
@@ -109,13 +109,13 @@ class IngredientRow extends StatefulWidget {
 }
 
 class _IngredientRowState extends State<IngredientRow> {
-  var _formKey = GlobalKey<FormBuilderState>();
+  final _formKey = GlobalKey<FormBuilderState>();
 
   @override
   Widget build(BuildContext context) {
     return FormBuilder(
       onChanged: (val) {
-        widget.onChange(val["ingredient"] as Ingredient, int.parse(val["amount"]));
+        widget.onChange(val['ingredient'] as Ingredient, int.parse(val['amount'] as String));
       },
       key: _formKey,
       child: Padding(
@@ -127,7 +127,7 @@ class _IngredientRowState extends State<IngredientRow> {
           ),
           Container(
             child: FormBuilderTextField(
-              attribute: "amount",
+              attribute: 'amount',
               keyboardType: TextInputType.number,
               validators: [
                 FormBuilderValidators.required(errorText: null),

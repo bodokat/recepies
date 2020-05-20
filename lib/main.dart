@@ -11,7 +11,7 @@ void main() {
   GetIt.I.registerSingleton(RecepieStore(db));
   GetIt.I.registerSingleton(IngredientStore(db));
   runApp(MaterialApp(
-    title: "Rezepte App",
+    title: 'Rezepte App',
     home: Home(),
     theme: ThemeData.dark(),
   ));

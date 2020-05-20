@@ -16,7 +16,7 @@ class Ingredients extends Table {
   TextColumn get name => text().withLength(max: 30)();
 }
 
-@DataClassName("RecepieToIngredient")
+@DataClassName('RecepieToIngredient')
 class RecepiesToIngredients extends Table {
   IntColumn get recepieId => integer().customConstraint('REFERENCES recepies(id)')();
   IntColumn get ingredientId => integer().customConstraint('REFERENCES ingredients(id)')();
@@ -53,7 +53,7 @@ class RecepiesDao extends DatabaseAccessor<MyDatabase> with _$RecepiesDaoMixin {
     assert(recepie.id == null);
     return db.transaction(() async {
       var id = await into(recepies).insert(RecepiesCompanion(title: Value(recepie.title), body: Value(recepie.body)));
-      Future.wait(
+      await Future.wait(
           recepie.ingredients.entries.map((entry) => into(recepiesToIngredients)
               .insert(RecepieToIngredient(recepieId: id, ingredientId: entry.key.id, amount: entry.value))),
           eagerError: true);
@@ -68,18 +68,16 @@ class RecepiesDao extends DatabaseAccessor<MyDatabase> with _$RecepiesDaoMixin {
           .join([innerJoin(ingredients, ingredients.id.equalsExp(recepiesToIngredients.ingredientId))])
             ..where(recepiesToIngredients.recepieId.equals(recepieId)))
       .get()
-      .then((rows) => Map.fromIterable(rows,
-          key: (row) => (row as TypedResult).readTable(ingredients).into(),
-          value: (row) => (row as TypedResult).readTable(recepiesToIngredients).amount));
+      .then((rows) =>
+          {for (var row in rows) row.readTable(ingredients).into(): row.readTable(recepiesToIngredients).amount});
   // rows.map((row) => MapEntry(row.readTable(ingredients).into(), row.readTable(recepiesToIngredients).amount))));
 
   Stream<Map<e.Ingredient, int>> watchIngredients(int recepieId) => (select(recepiesToIngredients)
           .join([innerJoin(ingredients, ingredients.id.equalsExp(recepiesToIngredients.ingredientId))])
             ..where(recepiesToIngredients.recepieId.equals(recepieId)))
       .watch()
-      .map((rows) => Map.fromIterable(rows,
-          key: (row) => (row as TypedResult).readTable(ingredients).into(),
-          value: (row) => (row as TypedResult).readTable(recepiesToIngredients).amount));
+      .map((rows) =>
+          {for (var row in rows) row.readTable(ingredients).into(): row.readTable(recepiesToIngredients).amount});
 
   ///adds ingredients of [Recepie] references by recepieId to [ingredients] (keeps old ingredients, if any exist)
   ///requires ingredients to already exist in database
@@ -109,11 +107,11 @@ class IngredientsDao extends DatabaseAccessor<MyDatabase> with _$IngredientsDaoM
 // -- Extensions --
 
 extension on Recepie {
-  e.SmallRecepie into() => e.SmallRecepie(id: this.id, title: this.title);
+  e.SmallRecepie into() => e.SmallRecepie(id: id, title: title);
 }
 
 extension on Ingredient {
-  e.Ingredient into() => e.Ingredient(id: this.id, name: this.name);
+  e.Ingredient into() => e.Ingredient(id: id, name: name);
 }
 
 extension on e.Ingredient {

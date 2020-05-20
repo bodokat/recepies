@@ -17,14 +17,14 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   TabController _tabController;
 
-  RecepieStore _store = GetIt.I<RecepieStore>();
+  final RecepieStore _store = GetIt.I<RecepieStore>();
 
-  List<Tab> _tabs = [
+  final List<Tab> _tabs = [
     Tab(
-      text: "Home",
+      text: 'Home',
     ),
     Tab(
-      text: "List",
+      text: 'List',
     )
   ];
 
@@ -36,9 +36,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     _pages = [
       StreamBuilder(
           stream: _store.homepageEntries,
-          builder: (context, snapshot) {
+          builder: (context, AsyncSnapshot<List<SmallRecepie>> snapshot) {
             if (snapshot.hasError) {
-              return Text("Error: ${snapshot.error}");
+              return Text('Error: ${snapshot.error}');
             }
             if (!snapshot.hasData) {
               return CircularProgressIndicator();
@@ -49,9 +49,9 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         final shoppingListFuture = _store.totalIngredients;
         return FutureBuilder(
             future: shoppingListFuture,
-            builder: (context, snapshot) {
+            builder: (context, AsyncSnapshot<Map<Ingredient, int>> snapshot) {
               if (snapshot.hasError) {
-                return Text("Error: ${snapshot.error}");
+                return Text('Error: ${snapshot.error}');
               }
               if (!snapshot.hasData) {
                 return Center(
@@ -75,7 +75,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Rezepte App"),
+        title: Text('Rezepte App'),
         bottom: TabBar(
           controller: _tabController,
           tabs: _tabs,
@@ -90,7 +90,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         onPressed: () async {
           var result = await Navigator.push(context, MaterialPageRoute<Recepie>(builder: (_) => RecepieForm()));
           if (result != null) {
-            _store.addRecepie(result);
+            await _store.addRecepie(result);
           }
         },
       ),

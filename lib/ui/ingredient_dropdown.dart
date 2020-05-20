@@ -11,32 +11,33 @@ class IngredientDropdown extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ValueNotifier<Ingredient> current = useState(null);
+    final current = useState<Ingredient>(null);
     final store = GetIt.I<IngredientStore>();
     final allIngredientsSnap = useStream(store.allIngredients);
-    return FormBuilderCustomField(
-        attribute: "ingredient",
+    return FormBuilderCustomField<Ingredient>(
+        attribute: 'ingredient',
         validators: [FormBuilderValidators.required()],
         formField: FormField(
           builder: (field) {
             if (allIngredientsSnap.hasError) {
               Navigator.pop(context, null);
               Scaffold.of(context)
-                  .showSnackBar(SnackBar(content: Text("could not get ingredients: ${allIngredientsSnap.error}")));
+                  .showSnackBar(SnackBar(content: Text('could not get ingredients: ${allIngredientsSnap.error}')));
               return null;
             }
-            if (allIngredientsSnap.data == null)
-              return DropdownButton(
-                hint: Text("Loading..."),
+            if (allIngredientsSnap.data == null) {
+              return DropdownButton<Optional<Ingredient>>(
+                hint: Text('Loading...'),
                 items: null,
                 onChanged: null,
               );
+            }
 
             final allIngredients = allIngredientsSnap.data;
             return DropdownButton(
                 isExpanded: true,
                 value: allIngredients.contains(current.value) ? current.value.toOptional : null,
-                hint: Text("add an ingredient"),
+                hint: Text('add an ingredient'),
                 items: [
                   for (var ingredient in allIngredients)
                     DropdownMenuItem(
@@ -44,7 +45,7 @@ class IngredientDropdown extends HookWidget {
                       value: Optional.of(ingredient),
                     ),
                   DropdownMenuItem(
-                    child: Text("new..."),
+                    child: Text('new...'),
                     value: Optional<Ingredient>.empty(),
                   )
                 ],
@@ -53,8 +54,8 @@ class IngredientDropdown extends HookWidget {
                   if (val.isNotEmpty) {
                     ing = val.value;
                   } else {
-                    Ingredient newIngredient =
-                        await showDialog(context: context, builder: (_) => AddIngredientDialog());
+                    var newIngredient =
+                        await showDialog<Ingredient>(context: context, builder: (_) => AddIngredientDialog());
                     if (newIngredient == null) {
                       return;
                     } else {
@@ -74,21 +75,21 @@ class AddIngredientDialog extends HookWidget {
   Widget build(BuildContext context) {
     final controller = useTextEditingController();
     return AlertDialog(
-      title: Text("Create new ingredient"),
+      title: Text('Create new ingredient'),
       content: Row(
         children: <Widget>[
           Expanded(
               child: TextField(
             controller: controller,
             autofocus: true,
-            decoration: InputDecoration(labelText: "Ingredient Name"),
+            decoration: InputDecoration(labelText: 'Ingredient Name'),
           ))
         ],
       ),
       actions: <Widget>[
-        FlatButton(onPressed: () => Navigator.pop(context, null), child: Text("Cancel")),
+        FlatButton(onPressed: () => Navigator.pop(context, null), child: Text('Cancel')),
         FlatButton(
-            onPressed: () => Navigator.pop(context, Ingredient(id: null, name: controller.text)), child: Text("Ok"))
+            onPressed: () => Navigator.pop(context, Ingredient(id: null, name: controller.text)), child: Text('Ok'))
       ],
     );
   }
